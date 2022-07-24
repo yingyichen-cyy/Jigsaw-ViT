@@ -1,0 +1,194 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>CompressFeatNoisyLabels</title>
+  <meta name="description" content="Project page for Compressing Features for Learning with Noisy Labels.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+  <meta charset="utf-8">
+
+  <!--Facebook preview-->
+  <meta property="og:image" content="https://imagine.enpc.fr/~monniert/DTIClustering/thumbnail.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="600">
+  <meta property="og:image:height" content="400">
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://imagine.enpc.fr/~monniert/DTIClustering/"/>
+  <meta property="og:title" content="DTI Clustering"/>
+  <meta property="og:description" content="Project page for Deep Transformation-Invariant Clustering."/>
+
+  <!--Twitter preview-->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="DTI Clustering" />
+  <meta name="twitter:description" content="Project page for Deep Transformation-Invariant Clustering."/>
+  <meta name="twitter:image" content="https://imagine.enpc.fr/~monniert/DTIClustering/thumbnail_twitter.png">
+
+  <!--Style-->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link href="style.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+
+<div class="container" style="text-align:center; padding:2rem 15px">
+  <div class="row" style="text-align:center">
+    <h1>Jigsaw-ViT : Learning Jigsaw Puzzles in Vision Transformer</h1>
+    <!-- <h4>Preprint</h4> -->
+  </div>
+  <div class="row" style="text-align:center">
+    <div class="col-xs-0 col-md-2"></div>
+    <div class="col-xs-12 col-md-8">
+      <h4>
+        <a href="https://github.com/yingyichen-cyy"><nobr>Yingyi Chen</nobr></a><sup>1</sup> &emsp;
+        <a href="https://xishen0220.github.io/"><nobr>Xi Shen</nobr></a><sup>2</sup> &emsp;
+        <a href="https://yhlleo.github.io/"><nobr>Yahui Liu</nobr></a><sup>3</sup> &emsp;
+        <a href="https://www.esat.kuleuven.be/sista/members/suykens.html"><nobr>Johan A.K. Suykens</nobr></a><sup>1</sup>
+        
+      </h4>
+
+      <sup>1</sup> ESAT-STADIUS, KU Leuven, Leuven &emsp;
+      <sup>2</sup> Tencent AI Lab, Shenzhen &emsp;
+      <sup>3</sup> University of Trento, Trento
+    </div>
+  </div>
+</div>
+
+<div class="container" style="text-align:center; padding:1rem">
+  <img src="resrc/teaser.pdf" alt="teaser.pdf" class="text-center" style="width: 100%; max-width: 1100px">
+  <p>Comparisons of regression between standard MLP and MLP trained with Nested Dropout and Dropout on a synthetic noisy label dataset. 
+  (a) MLP with standard training; 
+  (b-d) predictions of MLP+Nested using only the first <img src="http://latex.codecogs.com/svg.latex?k\in\{1,10,100\}" alt="k\in\{1,10,100\}" border="0"/> channels;
+  (e-h) predictions of MLP+Dropout with drop ratio <img src="http://latex.codecogs.com/svg.latex?p_{\text{drop}}\in\{0.9,0.7,0.5,0.3\}" alt="p_{\text{drop}}\in\{0.9,0.7,0.5,0.3\}" border="0"/>.
+  </p>
+  <h3 style="text-align:center; padding-top:1rem">
+    <!-- <a class="label label-info" href="">arXiv</a> -->
+    <a class="label label-info" href="https://arxiv.org/abs/2206.13140">Paper</a>
+    <a class="label label-info" href="https://github.com/yingyichen-cyy/Nested-Co-teaching">Code</a>
+  </h3>
+</div>
+
+<div class="container">
+  <h3>Abstract</h3>
+  <hr/>
+  <p>
+    The success of Vision Transformer (ViT) in various computer vision tasks has promoted the ever-increasing prevalence of this convolution-free network.
+    The fact that ViT works on image patches makes it potentially relevant to the problem of jigsaw puzzle solving, which is a classical self-supervised task aiming at reordering shuffled sequential image patches back to their natural form. Despite its simplicity, solving jigsaw puzzle has been demonstrated to be helpful for diverse tasks using Convolutional Neural Networks (CNNs), such as self-supervised feature representation learning, domain generalization, and fine-grained classification. 
+    <br /> 
+    <br /> 
+    In this paper, we explore solving jigsaw puzzle as a self-supervised auxiliary loss in ViT for image classification, named Jigsaw-ViT. We show two modifications that can make Jigsaw-ViT superior to standard ViT: discarding positional embeddings and masking patches randomly. Yet simple, we find that Jigsaw-ViT is able to improve both in generalization and robustness over the standard ViT, which is usually rather a trade-off. Experimentally, we show that adding the jigsaw puzzle branch provides better generalization than ViT on large-scale image classification on ImageNet. Moreover, the auxiliary task also improves robustness to noisy labels on Animal-10N, Food-101N, and Clothing1M as well as adversarial examples.
+  </p>
+
+  <h3>Method</h3>
+  <hr/>
+  <div class="row" style="text-align: center; padding-left:1rem; padding-right:1rem; padding-bottom:1rem;">
+    <img src="resrc/workflow.jpg" alt="workflow.jpg" class="text-center" style="width: 45%; max-width: 1000px;">
+    <p></br>
+      In stage one, the hidden activation <img src="http://latex.codecogs.com/svg.latex?\tilde{Z}" alt="\tilde{Z}" border="0"/> is computed by a feature extractor <img src="http://latex.codecogs.com/svg.latex?f" alt="f" border="0"/>. 
+       Dropout/Nested Dropout is applied to <img src="http://latex.codecogs.com/svg.latex?\tilde{Z}" alt="\tilde{Z}" border="0"/> by masking some of the features to zeros, i.e., <img src="http://latex.codecogs.com/svg.latex?Z=M\odot \tilde{Z}" alt="Z=M\odot \tilde{Z}" border="0"/>. 
+       The compressed feature <img src="http://latex.codecogs.com/svg.latex?Z" alt="Z" border="0"/> is then fed into the network structure <img src="http://latex.codecogs.com/svg.latex?d" alt="d" border="0"/>, which can simply be a fully connected layer (FC), to perform the final prediction. 
+       In stage two, the two base networks are fine-tuned with Co-teaching.
+    </p>
+  </div>
+
+  <h3>Results</h3>
+  <hr/>
+  <p><font color=#00BBFF>Please refer to our paper for more experiments.</font></p>
+  <div class="row" style="text-align: center">
+    <div class="col-xs-6">
+      <h4 style="margin-right: 20%"><u>Clothing1M with real-world label noise</u></h4>
+    </div>
+    <div class="col-xs-6">
+      <h4><u>ANIMAL-10N with real-world label noise</u></h4>
+    </div>
+  </div>
+  <div class="row" style="text-align: center">
+    <div class="col-xs-6">
+      <img src="resrc/clothing1m.jpg" alt="clothing1m.jpg" class="text-center" style="width: 50%; max-width: 900px">
+    </div>
+    <div class="col-xs-6">
+      <img src="resrc/animal.jpg" alt="animal.jpg" class="text-center" style="width: 57%; max-width: 900px; margin-top:
+      10px">
+    </div>
+  </div>
+  <div class="row" style="text-align: center">
+    <div class="col-xs-6">
+      <div style="width: 90%; max-width: 900px; padding-top:10px">
+      <p>Test accuracy (%) of state-of-the-art methods on Clothing1M (noise ratio ∼38%). 
+      All approaches are implemented with ResNet-50 architecture.
+      Results with ``*" use a balanced subset or a balanced loss.</p>
+      </div>
+    </div>
+    <div class="col-xs-6">
+      <div style="width: 100%; max-width: 900px; padding-top:10px">
+        <p>Average test accuracy (%) with standard deviation (3 runs) of state-of-the-art methods on ANIMAL-10N (noise ratio ~8%). 
+            All approaches are implemented with VGG-19 architecture.
+            Results with ``*" use two networks for training.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Resources</h3>
+  <hr/>
+  <div class="row" style="text-align: center">
+    <div class="col-xs-0 col-lg-0"></div>
+    <div class="col-xs-4 col-lg-4">
+      <h4>Paper</h4>
+      <a href="https://arxiv.org/abs/2206.13140" style="color:inherit"> 
+        <img src="resrc/paper.jpg" alt="paper.jpg" class="text-center" style="max-width:70%; border:0.15em solid;
+        border-radius:0.5em;"></a>
+    </div>
+    <div class="col-xs-4 col-lg-4">
+      <h4>Code</h4>
+      <a href="https://github.com/yingyichen-cyy/Nested-Co-teaching" style="color:inherit;">
+        <img src="resrc/github_repo.jpg" alt="github_repo.jpg" class="text-center"
+             style="max-width:70%; border:0.15em solid;border-radius:0.5em;"></a>
+    </div>
+    <div class="col-xs-4 col-lg-4">
+      <h4>Workshop Paper</h4>
+      <a href="https://openaccess.thecvf.com/content/CVPR2021W/LLID/papers/Chen_Boosting_Co-Teaching_With_Compression_Regularization_for_Label_Noise_CVPRW_2021_paper.pdf" style="color:inherit">
+        <img src="resrc/workshop.jpg" alt="workshop.jpg" class="text-center" style="max-width:70%; border:0.15em solid;
+        border-radius:0.5em;"></a>
+    </div>
+    <div class="col-xs-0 col-lg-0"></div>
+  </div>
+    <h4 style="padding-top:0.5em">BibTeX</h4>
+    If you find this work useful for your research, please cite:
+    <div class="card">
+      <div class="card-block">
+        <pre class="card-text clickselect">
+          @ARTICLE{chen2022compressing,
+              author={Chen, Yingyi and Hu, Shell Xu and Shen, Xi and Ai, Chunrong and Suykens, Johan A. K.},
+              journal={IEEE Transactions on Neural Networks and Learning Systems}, 
+              title={Compressing Features for Learning with Noisy Labels}, 
+              year={2022}
+          }</pre>
+      </div>
+    </div>
+
+  <h3>Acknowledgements</h3>
+  <hr/>
+  <p>
+    <font color=#00BBFF>We appreciate <a href="https://www.esat.kuleuven.be/stadius/person.php?id=2167"><nobr>Qinghua Tao</nobr></a> for helpful comments and discussions</font>.
+    <br /> 
+    This work is jointly supported by EU: The research leading to these results has received funding from the European Research Council under the European Union's Horizon 2020 research and innovation program / ERC Advanced Grant E-DUALITY (787960). This paper reflects only the authors' views and the Union is not liable for any use that may be made of the contained information.
+    Research Council KU Leuven:
+    Optimization frameworks for deep kernel machines C14/18/068
+    Flemish Government:
+    FWO: projects: GOA4917N (Deep Restricted Kernel Machines: Methods and Foundations), PhD/Postdoc grant
+    This research received funding from the Flemish Government (AI Research Program).
+    EU H2020 ICT-48 Network TAILOR (Foundations of Trustworthy AI - Integrating Reasoning, Learning and Optimization)
+    Leuven.AI Institute
+  </p>
+</div>
+
+<div class="container" style="padding-top:3rem; padding-bottom:3rem">
+  <p style="text-align:center">
+  &#169; This webpage was in part inspired from this
+  <a href="https://github.com/monniert/project-webpage">template</a>.
+  </p>
+</div>
+
+</body>
+</html> 
