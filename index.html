@@ -1,7 +1,7 @@
  <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>CompressFeatNoisyLabels</title>
+  <title>Jigsaw-ViT</title>
   <meta name="description" content="Project page for Compressing Features for Learning with Noisy Labels.">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
   <meta charset="utf-8">
@@ -44,6 +44,7 @@
         <a href="https://github.com/yingyichen-cyy"><nobr>Yingyi Chen</nobr></a><sup>1</sup> &emsp;
         <a href="https://xishen0220.github.io/"><nobr>Xi Shen</nobr></a><sup>2</sup> &emsp;
         <a href="https://yhlleo.github.io/"><nobr>Yahui Liu</nobr></a><sup>3</sup> &emsp;
+        <a href="https://www.esat.kuleuven.be/stadius/person.php?id=2167"><nobr>Qinghua Tao</nobr></a><sup>1</sup> &emsp;
         <a href="https://www.esat.kuleuven.be/sista/members/suykens.html"><nobr>Johan A.K. Suykens</nobr></a><sup>1</sup>
         
       </h4>
@@ -56,16 +57,17 @@
 </div>
 
 <div class="container" style="text-align:center; padding:1rem">
-  <img src="resrc/teaser.pdf" alt="teaser.pdf" class="text-center" style="width: 100%; max-width: 1100px">
-  <p>Comparisons of regression between standard MLP and MLP trained with Nested Dropout and Dropout on a synthetic noisy label dataset. 
-  (a) MLP with standard training; 
-  (b-d) predictions of MLP+Nested using only the first <img src="http://latex.codecogs.com/svg.latex?k\in\{1,10,100\}" alt="k\in\{1,10,100\}" border="0"/> channels;
-  (e-h) predictions of MLP+Dropout with drop ratio <img src="http://latex.codecogs.com/svg.latex?p_{\text{drop}}\in\{0.9,0.7,0.5,0.3\}" alt="p_{\text{drop}}\in\{0.9,0.7,0.5,0.3\}" border="0"/>.
+  <img src="resrc/teaser.jpg" alt="teaser.jpg" class="text-center" style="width: 60%; max-width: 1100px">
+  <br/>
+  <br/>
+  <p><b>Overview framework of our Jigsaw-ViT.</b> 
+  (Top) We incorporate jigsaw puzzle solving (in <b><font color=#0080ff>blue</font></b> flow) into the standard ViT for image classification (in <b><font color=#ff4000>red</font></b>). During the training, we jointly learn the two tasks.
+  (Bottom) The details of our jigsaw puzzle flow. We drop several patches, i.e., patch masking, and remove positional embeddings before feeding to ViT. For each unmasked patch, the model should predict the class corresponding to the patch position.
   </p>
   <h3 style="text-align:center; padding-top:1rem">
     <!-- <a class="label label-info" href="">arXiv</a> -->
-    <a class="label label-info" href="https://arxiv.org/abs/2206.13140">Paper</a>
-    <a class="label label-info" href="https://github.com/yingyichen-cyy/Nested-Co-teaching">Code</a>
+    <a class="label label-info" href="https://arxiv.org/abs/2207.11971">Paper</a>
+    <a class="label label-info" href="">Code</a>
   </h3>
 </div>
 
@@ -75,67 +77,101 @@
   <p>
     The success of Vision Transformer (ViT) in various computer vision tasks has promoted the ever-increasing prevalence of this convolution-free network.
     The fact that ViT works on image patches makes it potentially relevant to the problem of jigsaw puzzle solving, which is a classical self-supervised task aiming at reordering shuffled sequential image patches back to their natural form. Despite its simplicity, solving jigsaw puzzle has been demonstrated to be helpful for diverse tasks using Convolutional Neural Networks (CNNs), such as self-supervised feature representation learning, domain generalization, and fine-grained classification. 
-    <br /> 
-    <br /> 
+    <br/> 
+    <br/> 
     In this paper, we explore solving jigsaw puzzle as a self-supervised auxiliary loss in ViT for image classification, named Jigsaw-ViT. We show two modifications that can make Jigsaw-ViT superior to standard ViT: discarding positional embeddings and masking patches randomly. Yet simple, we find that Jigsaw-ViT is able to improve both in generalization and robustness over the standard ViT, which is usually rather a trade-off. Experimentally, we show that adding the jigsaw puzzle branch provides better generalization than ViT on large-scale image classification on ImageNet. Moreover, the auxiliary task also improves robustness to noisy labels on Animal-10N, Food-101N, and Clothing1M as well as adversarial examples.
   </p>
 
   <h3>Method</h3>
   <hr/>
-  <div class="row" style="text-align: center; padding-left:1rem; padding-right:1rem; padding-bottom:1rem;">
-    <img src="resrc/workflow.jpg" alt="workflow.jpg" class="text-center" style="width: 45%; max-width: 1000px;">
-    <p></br>
-      In stage one, the hidden activation <img src="http://latex.codecogs.com/svg.latex?\tilde{Z}" alt="\tilde{Z}" border="0"/> is computed by a feature extractor <img src="http://latex.codecogs.com/svg.latex?f" alt="f" border="0"/>. 
-       Dropout/Nested Dropout is applied to <img src="http://latex.codecogs.com/svg.latex?\tilde{Z}" alt="\tilde{Z}" border="0"/> by masking some of the features to zeros, i.e., <img src="http://latex.codecogs.com/svg.latex?Z=M\odot \tilde{Z}" alt="Z=M\odot \tilde{Z}" border="0"/>. 
-       The compressed feature <img src="http://latex.codecogs.com/svg.latex?Z" alt="Z" border="0"/> is then fed into the network structure <img src="http://latex.codecogs.com/svg.latex?d" alt="d" border="0"/>, which can simply be a fully connected layer (FC), to perform the final prediction. 
-       In stage two, the two base networks are fine-tuned with Co-teaching.
-    </p>
-  </div>
+  <p>
+    The overview framework of our approach is illustrated in the teaser image. 
+    Precisely, we focus on image classification problem using ViT. 
+    Our goal is to train a model that solves the standard classification and jigsaw puzzles simultaneously. 
+    The total loss <img src="http://latex.codecogs.com/svg.latex?\mathcal{L}_{\text{total}}" alt="\mathcal{L}_{\text{total}}" border="0"/> is a simple weighted combination of two cross-entropy losses denoted by <img src="http://latex.codecogs.com/svg.latex?CE" alt="CE" border="0"/>s: 
+    the class prediction loss on the <img src="http://latex.codecogs.com/svg.latex?CLS" alt="CLS" border="0"/> token <img src="http://latex.codecogs.com/svg.latex?\mathcal{L}_{\text{cls}}" alt="\mathcal{L}_{\text{cls}}" border="0"/> and the position prediction loss on the patch tokens <img src="http://latex.codecogs.com/svg.latex?\mathcal{L}_{\text{jigsaw}}" alt="\mathcal{L}_{\text{jigsaw}}" border="0"/>:
+    <br/>
+    <br/>
+    <center>
+    <img src="http://latex.codecogs.com/svg.latex?\mathcal{L}_{\text{total}} = \underbrace{CE(\mathbf{y}_{\text{pred}}, y)}_{\mathcal{L}_{\text{cls}}} + \eta \underbrace{CE(\tilde{\mathbf{y}}_{\text{pred}}, \tilde{y})}_{\mathcal{L}_{\text{jigsaw}}}" alt="\mathcal{L}_{\text{total}} = \underbrace{CE(\mathbf{y}_{\text{pred}}, y)}_{\mathcal{L}_{\text{cls}}} + \eta \underbrace{CE(\tilde{\mathbf{y}}_{\text{pred}}, \tilde{y})}_{\mathcal{L}_{\text{jigsaw}}}" border="0"/>
+    </center>
+    <br/>
+    where <img src="http://latex.codecogs.com/svg.latex?\tilde{\mathbf{y}}_{\text{pred}}" alt="\tilde{\mathbf{y}}_{\text{pred}}" border="0"/> and <img src="http://latex.codecogs.com/svg.latex?\tilde{y}" alt="\tilde{y}" border="0"/> denote position prediction and the corresponding real position, respectively, and <img src="http://latex.codecogs.com/svg.latex?\eta" alt="\eta" border="0"/> is a hyper-parameter to balance the two losses.
+    <br/>
+    <br/>
+    Our jigsaw puzzle flow is detailed in bottom part of the teaser image.
+    Specifically, we include two changes compared to naive jigsaw puzzle implementation: 
+    <i>(i)</i> we get rid of positional embedding in the jigsaw puzzle flow, which provides explicit clues to the position prediction; 
+    <i>(ii)</i> we randomly drop <img src="http://latex.codecogs.com/svg.latex?\gamma L" alt="\gamma L" border="0"/> 
+    patches in the input where 
+    <img src="http://latex.codecogs.com/svg.latex?\gamma\in[0,1)" alt="\gamma\in[0,1)" border="0"/> 
+    is a hyper-parameter denoting the mask ratio. 
+    It can be apparently seen that both two strategies increase the difficulties in solving jigsaw puzzle,
+    which is demonstrated to be helpful for the main classification task (Section 4 in the paper). 
+    Since the proposed jigsaw puzzle solving is a self-supervised task, it can be easily plugged into existing ViT without modifying the original architecture.
+  </p>
+
 
   <h3>Results</h3>
   <hr/>
-  <p><font color=#00BBFF>Please refer to our paper for more experiments.</font></p>
+  <p><font color=#ffa64d>Please refer to our paper for more experiments.</font></p>
+  <p><h4 style="text-align: center"><u>Robustness to label noise</u></h4></p>
   <div class="row" style="text-align: center">
     <div class="col-xs-6">
-      <h4 style="margin-right: 20%"><u>Clothing1M with real-world label noise</u></h4>
+      <h4 style="text-align: center"><u>Image classification on datasets with low noise rate</u></h4>
     </div>
     <div class="col-xs-6">
-      <h4><u>ANIMAL-10N with real-world label noise</u></h4>
+      <h4><u>Image classification on datasets with high noise rate</u></h4>
     </div>
   </div>
   <div class="row" style="text-align: center">
     <div class="col-xs-6">
-      <img src="resrc/clothing1m.jpg" alt="clothing1m.jpg" class="text-center" style="width: 50%; max-width: 900px">
+      <img src="resrc/low-noise.jpg" alt="low-noise.jpg" class="text-center" style="width: 100%; max-width: 1000px">
     </div>
     <div class="col-xs-6">
-      <img src="resrc/animal.jpg" alt="animal.jpg" class="text-center" style="width: 57%; max-width: 900px; margin-top:
+      <img src="resrc/high-noise.jpg" alt="high-noise.jpg" class="text-center" style="width: 100%; max-width: 1000px; margin-top:
       10px">
     </div>
   </div>
   <div class="row" style="text-align: center">
     <div class="col-xs-6">
-      <div style="width: 90%; max-width: 900px; padding-top:10px">
-      <p>Test accuracy (%) of state-of-the-art methods on Clothing1M (noise ratio ∼38%). 
-      All approaches are implemented with ResNet-50 architecture.
-      Results with ``*" use a balanced subset or a balanced loss.</p>
+      <div style="width: 100%; max-width: 900px; padding-top:10px">
+      <p><b>Image classification on datasets with low noise rate.</b> 
+      We compare to state-of-the-art approaches and report test top-1 accuracy (%) on Animal-10N (noise ratio ~8%, in Table (a)) Food-101N (noise ratio ~20%, in Table (b)). 
+      We also show how much our Jigsaw-ViT model is above or below DeiT-Small/16, which are marked with <b><font color=#009933>&uarr;</font></b> 
+      and <b><font color=#e63900>&darr;</font></b> respectively.</p>
       </div>
     </div>
     <div class="col-xs-6">
       <div style="width: 100%; max-width: 900px; padding-top:10px">
-        <p>Average test accuracy (%) with standard deviation (3 runs) of state-of-the-art methods on ANIMAL-10N (noise ratio ~8%). 
-            All approaches are implemented with VGG-19 architecture.
-            Results with ``*" use two networks for training.</p>
-      </div>
+        <p><b>Image classification on datasets with high noise rate.</b>  
+        We compare to state-of-the-art approaches and report test top-1 accuracy (%) on Clothing1M (noise ratio ~38%). 
+        We also show how much Jigsaw-ViT+NCT is above or below NCT, which are marked with <b><font color=#009933>&uarr;</font></b> 
+        and <b><font color=#e63900>&darr;</font></b> respectively.</p>
     </div>
   </div>
+  <dir>
+    </br></br></br></br></br>
+  </div>
+  <div class="row" style="text-align: center">
+  <p><h4 style="text-align: center"><u>Robustness to adversarial examples</u></h4></p>
+  <img src="resrc/adv.jpg" alt="adv.jpg" class="text-center" style="width: 70%; max-width: 1000px; margin-top:10px">
+        <p><b>Robustness to adversarial examples.</b> 
+        We report top-1 accuracy (%) after attacks on ImageNet validation set (higher numbers indicate better model robustness). 
+        (a) Attacks crafted by different methods in the black-box setting.
+        (b) Weak white-box attacks.
+        We also show how much our Jigsaw-ViT model is above or below DeiT-Small/16, which are marked with <b><font color=#009933>&uarr;</font></b> 
+        and <b><font color=#e63900>&darr;</font></b> respectively.</p>
+  </div>
+
 
   <h3>Resources</h3>
   <hr/>
   <div class="row" style="text-align: center">
-    <div class="col-xs-0 col-lg-0"></div>
+    <div class="col-xs-2 col-lg-2"></div>
     <div class="col-xs-4 col-lg-4">
       <h4>Paper</h4>
-      <a href="https://arxiv.org/abs/2206.13140" style="color:inherit"> 
+      <a href="https://arxiv.org/abs/2207.11971" style="color:inherit"> 
         <img src="resrc/paper.jpg" alt="paper.jpg" class="text-center" style="max-width:70%; border:0.15em solid;
         border-radius:0.5em;"></a>
     </div>
@@ -145,23 +181,17 @@
         <img src="resrc/github_repo.jpg" alt="github_repo.jpg" class="text-center"
              style="max-width:70%; border:0.15em solid;border-radius:0.5em;"></a>
     </div>
-    <div class="col-xs-4 col-lg-4">
-      <h4>Workshop Paper</h4>
-      <a href="https://openaccess.thecvf.com/content/CVPR2021W/LLID/papers/Chen_Boosting_Co-Teaching_With_Compression_Regularization_for_Label_Noise_CVPRW_2021_paper.pdf" style="color:inherit">
-        <img src="resrc/workshop.jpg" alt="workshop.jpg" class="text-center" style="max-width:70%; border:0.15em solid;
-        border-radius:0.5em;"></a>
-    </div>
-    <div class="col-xs-0 col-lg-0"></div>
   </div>
+
     <h4 style="padding-top:0.5em">BibTeX</h4>
     If you find this work useful for your research, please cite:
     <div class="card">
       <div class="card-block">
         <pre class="card-text clickselect">
-          @ARTICLE{chen2022compressing,
-              author={Chen, Yingyi and Hu, Shell Xu and Shen, Xi and Ai, Chunrong and Suykens, Johan A. K.},
-              journal={IEEE Transactions on Neural Networks and Learning Systems}, 
-              title={Compressing Features for Learning with Noisy Labels}, 
+          @ARTICLE{chen2022jigsaw,
+              author={Chen, Yingyi and Shen, Xi and Liu, Yahui and Tao, Qinghua and Suykens, Johan A. K.},
+              journal={arXiv preprint arXiv:2207.11971}, 
+              title={Jigsaw-ViT: Learning Jigsaw Puzzles in Vision Transformer}, 
               year={2022}
           }</pre>
       </div>
@@ -170,8 +200,6 @@
   <h3>Acknowledgements</h3>
   <hr/>
   <p>
-    <font color=#00BBFF>We appreciate <a href="https://www.esat.kuleuven.be/stadius/person.php?id=2167"><nobr>Qinghua Tao</nobr></a> for helpful comments and discussions</font>.
-    <br /> 
     This work is jointly supported by EU: The research leading to these results has received funding from the European Research Council under the European Union's Horizon 2020 research and innovation program / ERC Advanced Grant E-DUALITY (787960). This paper reflects only the authors' views and the Union is not liable for any use that may be made of the contained information.
     Research Council KU Leuven:
     Optimization frameworks for deep kernel machines C14/18/068

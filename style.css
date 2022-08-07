@@ -4,7 +4,7 @@ h1 {
 
 
 a {
-	color: #800084;
+	color: #339933;
 }
 
 a:hover {
@@ -16,7 +16,7 @@ hr {
   margin-top: 1rem;
   margin-bottom: 1rem;
   border: 0;
-  border-top: 3px solid #800084;
+  border-top: 3px solid #339933;
 }
 
 p {
@@ -48,7 +48,7 @@ table {
 }
 
 .label-info {
-  background-color: #800084;
+  background-color: #339933;
 }
 
 .label-info[href]:hover {
